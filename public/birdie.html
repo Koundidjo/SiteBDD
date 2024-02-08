@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulaire Birdie PM2.5</title>
+</head>
+<body>
+  <h1>Formulaire Birdie PM2.5</h1>
+  <form id="pm25Form">
+    <label for="deviceId">ID du dispositif:</label>
+    <input type="text" id="deviceId" name="deviceId" required>
+    <br>
+    <label for="startDate">Date et heure de début:</label>
+    <input type="datetime-local" id="startDate" name="startDate" required>
+    <br>
+    <label for="endDate">Date et heure de fin:</label>
+    <input type="datetime-local" id="endDate" name="endDate" required>
+    <br>
+    <button type="button" onclick="getPM25Data()">Récupérer les valeurs PM2.5</button>
+  </form>
+  
+  <!-- Div pour afficher le résultat -->
+  <div id="resultContainer"></div>
+
+  <script>
+    async function getPM25Data() {
+      const deviceId = document.getElementById('deviceId').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+
+      try {
+        const response = await fetch(`/data/${deviceId}/${startDate}/${endDate}`);
+        const result = await response.json();
+
+        if (response.ok) {
+          // Affichez le résultat sur la page
+          document.getElementById('resultContainer').innerText = JSON.stringify(result, null, 2);
+        } else {
+          console.error('Erreur côté serveur:', result);
+          // Affichez une erreur sur la page si nécessaire
+          document.getElementById('resultContainer').innerText = 'Erreur côté serveur';
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données:', error);
+        // Affichez une erreur sur la page si nécessaire
+        document.getElementById('resultContainer').innerText = 'Erreur lors de la récupération des données';
+      }
+    }
+  </script>
+</body>
+</html>

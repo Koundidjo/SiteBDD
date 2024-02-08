@@ -3,19 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ajouter un device</title>
+  <title>Ajouter/Modifier/Supprimer un device</title>
+
+  <script>
+    async function addDevice() {
+      const response = await fetch('/new_device', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nom: document.getElementById('nom').value,
+          localisation: document.getElementById('localisation').value,
+        }),
+      });
+      
+      const result = await response.json();
+      console.log(result);
+    }
+
+    async function updateDevice() {
+      const deviceId = document.getElementById('updateId').value; // Obtenez l'ID du device à mettre à jour
+      const response = await fetch(`/update_device/${deviceId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nom: document.getElementById('nom').value,
+          localisation: document.getElementById('localisation').value,
+        }),
+      });
+
+      const result = await response.json();
+      console.log(result);
+    }
+
+    async function deleteDevice() {
+      const deviceId = document.getElementById('deleteId').value; // Obtenez l'ID du device à supprimer
+      const response = await fetch(`/delete_device/${deviceId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+      console.log(result);
+    }
+  </script>
 </head>
 <body>
-  <h1>Ajouter un device</h1>
-  <form action="/new_device" method="POST">
+  <h1>Ajouter/Modifier/Supprimer un device</h1>
+  <form id="deviceForm">
     <label for="nom">Nom du device:</label>
     <input type="text" id="nom" name="nom" required>
     <br>
     <label for="localisation">Localisation:</label>
     <input type="text" id="localisation" name="localisation" required>
     <br>
-    <button type="submit">Ajouter le device</button>
+    <label for="updateId">ID pour mise à jour:</label>
+    <input type="text" id="updateId" name="updateId" required>
+    <br>
+    <label for="deleteId">ID pour suppression:</label>
+    <input type="text" id="deleteId" name="deleteId" required>
+    <br>
+    <button type="button" onclick="addDevice()">Ajouter le device</button>
+    <button type="button" onclick="updateDevice()">Mettre à jour le device</button>
+    <button type="button" onclick="deleteDevice()">Supprimer le device</button>
   </form>
 </body>
 </html>
-    
