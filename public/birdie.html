@@ -1,52 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Formulaire Birdie PM2.5</title>
-</head>
-<body>
-  <h1>Formulaire Birdie PM2.5</h1>
-  <form id="pm25Form">
-    <label for="deviceId">ID du dispositif:</label>
-    <input type="text" id="deviceId" name="deviceId" required>
-    <br>
-    <label for="startDate">Date et heure de début:</label>
-    <input type="datetime-local" id="startDate" name="startDate" required>
-    <br>
-    <label for="endDate">Date et heure de fin:</label>
-    <input type="datetime-local" id="endDate" name="endDate" required>
-    <br>
-    <button type="button" onclick="getPM25Data()">Récupérer les valeurs PM2.5</button>
-  </form>
-  
-  <!-- Div pour afficher le résultat -->
-  <div id="resultContainer"></div>
-
-  <script>
-    async function getPM25Data() {
-      const deviceId = document.getElementById('deviceId').value;
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-
-      try {
-        const response = await fetch(`/data/${deviceId}/${startDate}/${endDate}`);
-        const result = await response.json();
-
-        if (response.ok) {
-          // Affichez le résultat sur la page
-          document.getElementById('resultContainer').innerText = JSON.stringify(result, null, 2);
-        } else {
-          console.error('Erreur côté serveur:', result);
-          // Affichez une erreur sur la page si nécessaire
-          document.getElementById('resultContainer').innerText = 'Erreur côté serveur';
-        }
-      } catch (error) {
-        console.error('Erreur lors de la récupération des données:', error);
-        // Affichez une erreur sur la page si nécessaire
-        document.getElementById('resultContainer').innerText = 'Erreur lors de la récupération des données';
-      }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulaire Birdie PM2.5</title>
+    <!-- Inclure Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inclure Moment.js -->
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+    <!-- Inclure le module d'adaptateur de date complet pour Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+  </head>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      margin: 20px;
     }
-  </script>
-</body>
+
+    h1 {
+      color: #333;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input {
+      margin-bottom: 10px;
+      padding: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #resultContainer {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      white-space: pre-wrap;
+    }
+
+    #pm25Chart {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+    }
+  </style>
+  <body>
+    <h1>Formulaire Birdie PM2.5</h1>
+    <form id="pm25Form">
+      <label for="deviceId">ID du dispositif:</label>
+      <input type="text" id="deviceId" name="deviceId" required />
+      <br />
+      <label for="startDate">Date et heure de début:</label>
+      <input type="datetime-local" id="startDate" name="startDate" required />
+      <br />
+      <label for="endDate">Date et heure de fin:</label>
+      <input type="datetime-local" id="endDate" name="endDate" required />
+      <br />
+      <button type="button" onclick="getPM25Data()">
+        Récupérer les valeurs PM2.5
+      </button>
+    </form>
+
+    <!-- Div pour afficher le résultat -->
+    <div id="resultContainer"></div>
+
+    <!-- Ajouter un conteneur pour le graphique -->
+    <canvas id="pm25Chart" width="400" height="200"></canvas>
+
+    <script>
+      async function getPM25Data() {
+        const deviceId = document.getElementById("deviceId").value;
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        try {
+          const response = await fetch(
+            `/data/${deviceId}/${startDate}/${endDate}`
+          );
+          const result = await response.json();
+
+          if (response.ok) {
+            // Affichez le résultat sur la page
+            document.getElementById("resultContainer").innerText =
+              JSON.stringify(result, null, 2);
+
+            // Générer le graphique avec Chart.js
+            generateChart(result);
+          } else {
+            console.error("Erreur côté serveur:", result);
+            // Affichez une erreur sur la page si nécessaire
+            document.getElementById("resultContainer").innerText =
+              "Erreur côté serveur";
+          }
+        } catch (error) {
+          console.error("Erreur lors de la récupération des données:", error);
+          // Affichez une erreur sur la page si nécessaire
+          document.getElementById("resultContainer").innerText =
+            "Erreur lors de la récupération des données";
+        }
+      }
+
+      function generateChart(data) {
+        const timestamps = data.map((entry) => moment(entry.timestamp));
+        const concentrations = data.map((entry) => entry.concentration);
+
+        const existingChart = Chart.getChart("pm25Chart");
+        if (existingChart) {
+          existingChart.destroy();
+        }
+
+        const ctx = document.getElementById("pm25Chart").getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: timestamps,
+            datasets: [
+              {
+                label: "Concentration en PM2.5",
+                data: concentrations,
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 2,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: "time",
+                time: {
+                  unit: "minute",
+                  displayFormats: {
+                    minute: "HH:mm",
+                  },
+                },
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Concentration en PM2.5",
+                },
+              },
+            },
+          },
+        });
+      }
+    </script>
+  </body>
 </html>

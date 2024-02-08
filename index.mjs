@@ -102,6 +102,28 @@ app.get('/data/:id_device/:debut/:fin', async (req, res) => {
     res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
+
+// Route pour recevoir les valeurs de PM2.5 depuis l'Arduino
+app.post('/post_pm25', async (req, res) => {
+  try {
+    const { pm2_5 } = req.body;
+
+    // Ajoutez ici la logique pour enregistrer la valeur de PM2.5 dans la base de données
+    await prisma.data.create({
+      data: {
+        concentration: parseFloat(pm2_5),
+        timestamp: new Date(),
+        deviceId: 1,  // Remplacez par l'ID du dispositif approprié
+      },
+    });
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Erreur lors de la réception des valeurs de PM2.5 depuis l\'Arduino:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+});
+
 // Lancement du serveur
 app.listen(8080, () => {
   console.log("Serveur à l'écoute sur le port 8080");
