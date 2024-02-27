@@ -1,73 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ajouter/Modifier/Supprimer un device</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulaire devices</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 20px;
+      }
 
-  <script>
-    async function addDevice() {
-      const response = await fetch('/new_device', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nom: document.getElementById('nom').value,
-          localisation: document.getElementById('localisation').value,
-        }),
-      });
-      
-      const result = await response.json();
-      console.log(result);
-    }
+      h1 {
+        color: #333;
+      }
 
-    async function updateDevice() {
-      const deviceId = document.getElementById('updateId').value; // Obtenez l'ID du device à mettre à jour
-      const response = await fetch(`/update_device/${deviceId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nom: document.getElementById('nom').value,
-          localisation: document.getElementById('localisation').value,
-        }),
-      });
+      form {
+        margin-bottom: 20px;
+      }
 
-      const result = await response.json();
-      console.log(result);
-    }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
 
-    async function deleteDevice() {
-      const deviceId = document.getElementById('deleteId').value; // Obtenez l'ID du device à supprimer
-      const response = await fetch(`/delete_device/${deviceId}`, {
-        method: 'DELETE',
-      });
+      input {
+        margin-bottom: 10px;
+        padding: 5px;
+        width: 100%;
+        box-sizing: border-box;
+      }
 
-      const result = await response.json();
-      console.log(result);
-    }
-  </script>
-</head>
-<body>
-  <h1>Ajouter/Modifier/Supprimer un device</h1>
-  <form id="deviceForm">
-    <label for="nom">Nom du device:</label>
-    <input type="text" id="nom" name="nom" required>
-    <br>
-    <label for="localisation">Localisation:</label>
-    <input type="text" id="localisation" name="localisation" required>
-    <br>
-    <label for="updateId">ID pour mise à jour:</label>
-    <input type="text" id="updateId" name="updateId" required>
-    <br>
-    <label for="deleteId">ID pour suppression:</label>
-    <input type="text" id="deleteId" name="deleteId" required>
-    <br>
-    <button type="button" onclick="addDevice()">Ajouter le device</button>
-    <button type="button" onclick="updateDevice()">Mettre à jour le device</button>
-    <button type="button" onclick="deleteDevice()">Supprimer le device</button>
-  </form>
-</body>
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      #deviceList {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        white-space: pre-wrap;
+        display: none;
+      }
+    </style>
+
+    <script>
+      async function addDevice() {
+        const response = await fetch("/new_device", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nom: document.getElementById("nom").value,
+            localisation: document.getElementById("localisation").value,
+          }),
+        });
+
+        const result = await response.json();
+        console.log(result);
+      }
+
+      async function updateDevice() {
+        const deviceId = document.getElementById("updateId").value;
+        const response = await fetch(`/update_device/${deviceId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nom: document.getElementById("nom").value,
+            localisation: document.getElementById("localisation").value,
+          }),
+        });
+
+        const result = await response.json();
+        console.log(result);
+      }
+
+      async function deleteDevice() {
+        const deviceId = document.getElementById("deleteId").value;
+        const response = await fetch(`/delete_device/${deviceId}`, {
+          method: "DELETE",
+        });
+
+        const result = await response.json();
+        console.log(result);
+      }
+
+      async function getAllDevices() {
+        const deviceListContainer = document.getElementById("deviceList");
+
+        try {
+          const response = await fetch("/devices");
+          if (!response.ok) {
+            throw new Error(
+              `Error: ${response.status} - ${response.statusText}`
+            );
+          }
+
+          const result = await response.json();
+
+          // Toggle visibility of the device list container
+          if (deviceListContainer.style.display === "none") {
+            deviceListContainer.style.display = "block";
+            document.getElementById("deviceList").innerText = JSON.stringify(
+              result,
+              null,
+              2
+            );
+          } else {
+            deviceListContainer.style.display = "none";
+          }
+        } catch (error) {
+          console.error("Error fetching devices:", error.message);
+          document.getElementById("deviceList").innerText =
+            "Error fetching devices";
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Ajouter/Modifier/Supprimer un device</h1>
+    <form id="deviceForm">
+      <label for="nom">Nom du device:</label>
+      <input type="text" id="nom" name="nom" required />
+      <br />
+      <label for="localisation">Localisation:</label>
+      <input type="text" id="localisation" name="localisation" required />
+      <br />
+      <label for="updateId">ID pour mise à jour:</label>
+      <input type="text" id="updateId" name="updateId" required />
+      <br />
+      <label for="deleteId">ID pour suppression:</label>
+      <input type="text" id="deleteId" name="deleteId" required />
+      <br />
+      <button type="button" onclick="addDevice()">Ajouter le device</button>
+      <button type="button" onclick="updateDevice()">
+        Mettre à jour le device
+      </button>
+      <button type="button" onclick="deleteDevice()">
+        Supprimer le device
+      </button>
+      <button type="button" onclick="getAllDevices()">
+        Voir tous les devices
+      </button>
+      <a href="birdie.html">
+        <button type="button">Aller au formulaire PM2.5</button>
+      </a>
+    </form>
+
+    <!-- Display area for all devices -->
+    <div id="deviceList"></div>
+  </body>
 </html>
